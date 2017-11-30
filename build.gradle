@@ -1,3 +1,86 @@
+import de.gesellix.gradle.docker.tasks.DockerBuildTask
+import de.gesellix.gradle.docker.tasks.DockerPushTask
+import de.gesellix.gradle.docker.tasks.DockerRmiTask
+
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
+buildscript {
+  ext {
+    dockerPluginVersion = '2017-06-07T23-32-34'
+  }
+  repositories {
+    maven { url "https://plugins.gradle.org/m2/" }
+    mavenCentral()
+  }
+  dependencies {
+    classpath("de.gesellix:gradle-docker-plugin:${dockerPluginVersion}")
+  }
+}
+
+apply plugin: 'application'
+apply plugin: 'java'
+apply plugin: "de.gesellix.docker"
+
+version = ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss"))
+sourceCompatibility = JavaVersion.VERSION_1_8
+
+repositories {
+  mavenCentral()
+  jcenter()
+}
+
+dependencies {
+}
+
+ext {
+  dockerBuildContextSources = file("${projectDir}/src/main/docker")
+  dockerBuildContextDir = file("${buildDir}/docker")
+  dockerImageName = "gesellix/dns-stress"
+  dockerImageId = "${dockerImageName}:${project.version}"
+}
+
+mainClassName = "de.gesellix.dnsstress.Main"
+jar {
+  manifest {
+    attributes(
+//        'Class-Path': configurations.compile,
+        'Main-Class': mainClassName
+    )
+  }
+}
+
+task prepareBuildContext(type: Copy) {
+  from dockerBuildContextSources
+  into dockerBuildContextDir
+}
+
+task copyArtifact(type: Copy) {
+  dependsOn jar
+  dependsOn prepareBuildContext
+  from { jar }
+  into dockerBuildContextDir
+  rename { "app.jar" }
+}
+
+task rmiLocalImage(type: DockerRmiTask) {
+  imageId = dockerImageId
+}
+
+task buildImage(type: DockerBuildTask) {
+  dependsOn copyArtifact
+  buildContextDirectory = dockerBuildContextDir
+  imageName = dockerImageId
+  doLast{
+    logger.lifecycle("imageid: $dockerImageId")
+  }
+}
+
+task publishImage(type: DockerPushTask, dependsOn: [buildImage]) {
+  repositoryName = buildImage.imageName
+  authConfigPlain = getDockerClient().readDefaultAuthConfig()
+  finalizedBy rmiLocalImage
+}
 
 task wrapper(type: Wrapper) {
   gradleVersion = "4.3.1"
