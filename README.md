@@ -4,7 +4,8 @@ Usage:
 
 The file `secrets-env.properties` contains the `SLACK_WEBHOOK_URL` to send notifications on failed lookups.
 
-The following JVM network settings will be logged before performing dns lookups:
+The following [JVM network settings](https://docs.oracle.com/javase/7/docs/technotes/guides/net/properties.html)
+ will be logged before performing dns lookups:
 
     networkaddress.cache.ttl
     networkaddress.cache.negative.ttl 
