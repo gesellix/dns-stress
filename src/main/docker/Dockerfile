@@ -2,14 +2,13 @@ FROM openjdk:8u92-jre-alpine
 
 ENV TZ Europe/Berlin
 
-ENV SERVER_PORT 8080
-EXPOSE $SERVER_PORT
+ENV SLACK_WEBHOOK_URL http://localhost
 
 RUN mkdir /app
 WORKDIR /app
 
-ENTRYPOINT ["java", "-Xms64m", "-Xmx64m", "-server", "-jar", "app.jar"]
+ENTRYPOINT ["bin/dns-stress"]
 CMD ["1", "google.de"]
 
-COPY app.jar /app/
-RUN ls
+COPY ./bin/ /app/bin
+COPY ./lib/ /app/lib
