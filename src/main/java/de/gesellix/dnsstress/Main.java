@@ -25,7 +25,7 @@ public class Main {
     String hostname = "elasticsearch-http.vorgangsmanagement.europace.localll";
 
     if (args.length == 0) {
-      System.out.println("Usage: java -jar app.jar <interval seconds> <hostname String>");
+      System.out.println("Usage: ./bin/dns-stress <interval seconds> <hostname String>");
       System.out.printf("Using defaults (%s, %s)\n", intervalSeconds, hostname);
     }
     else {
