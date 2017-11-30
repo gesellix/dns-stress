@@ -1,0 +1,21 @@
+FROM openjdk:8u92-jdk-alpine as builder
+
+WORKDIR /proj
+COPY . /proj
+RUN ./gradlew clean copyArtifact
+
+
+FROM openjdk:8u92-jre-alpine
+
+ENV TZ Europe/Berlin
+
+ENV SLACK_WEBHOOK_URL http://localhost
+
+RUN mkdir /app
+WORKDIR /app
+
+ENTRYPOINT ["bin/dns-stress"]
+CMD ["1", "google.de"]
+
+COPY --from=builder /proj/build/docker/bin/ /app/bin
+COPY --from=builder /proj/build/docker/lib/ /app/lib
