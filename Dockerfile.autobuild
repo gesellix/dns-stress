@@ -1,8 +1,15 @@
 FROM openjdk:8u92-jdk-alpine as builder
 
 WORKDIR /proj
-COPY . /proj
+
+COPY ./settings.gradle /proj/settings.gradle
+COPY ./build.gradle /proj/build.gradle
+COPY ./gradlew /proj/gradlew
+COPY ./gradlew.bat /proj/gradlew.bat
+COPY ./gradle /proj/gradle
 RUN ./gradlew clean
+
+COPY . /proj
 RUN ./gradlew copyArtifact
 
 
