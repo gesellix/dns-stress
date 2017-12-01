@@ -19,10 +19,12 @@ class LookupTask extends TimerTask {
 
   private final OkHttpClient client = new OkHttpClient();
 
+  private String ownHost;
   private String hostname;
   private String slackWebhookUrl;
 
-  LookupTask(String hostname, String slackWebhookUrl) {
+  LookupTask(String ownHost, String hostname, String slackWebhookUrl) {
+    this.ownHost = ownHost == null || ownHost.isEmpty() ? "UNKNOWN" : ownHost;
     this.hostname = hostname;
     this.slackWebhookUrl = slackWebhookUrl;
   }
@@ -45,7 +47,7 @@ class LookupTask extends TimerTask {
                             "payload={" +
                             "\"channel\": \"#pku_unknownhosts\"," +
                             "\"username\": \"webhookbot\"," +
-                            "\"text\": \"@channel Lookup failed for " + hostname + ".\"," +
+                            "\"text\": \"@channel Lookup failed for " + hostname + " from " + ownHost + ".\"," +
                             "\"parse\": \"full\"," +
                             "\"icon_emoji\": \":ghost:\"}");
           System.out.println("res:" + res);

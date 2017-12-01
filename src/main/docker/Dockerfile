@@ -3,6 +3,7 @@ FROM openjdk:8u92-jre-alpine
 ENV TZ Europe/Berlin
 
 ENV SLACK_WEBHOOK_URL http://localhost
+ENV OWN_HOST unknown-host
 
 RUN mkdir /app
 WORKDIR /app
