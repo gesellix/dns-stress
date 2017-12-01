@@ -2,7 +2,8 @@ FROM openjdk:8u92-jdk-alpine as builder
 
 WORKDIR /proj
 COPY . /proj
-RUN ./gradlew clean copyArtifact
+RUN ./gradlew clean
+RUN ./gradlew copyArtifact
 
 
 FROM openjdk:8u92-jre-alpine
