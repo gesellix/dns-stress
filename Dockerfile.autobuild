@@ -1,4 +1,4 @@
-FROM openjdk:8u92-jdk as builder
+FROM openjdk:8u151-jdk as builder
 
 WORKDIR /proj
 
@@ -13,7 +13,7 @@ COPY . /proj
 RUN ./gradlew copyArtifact
 
 
-FROM openjdk:8u92-jre
+FROM openjdk:151-jre
 
 ENV TZ Europe/Berlin
 

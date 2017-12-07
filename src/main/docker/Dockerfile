@@ -1,4 +1,4 @@
-FROM openjdk:8u92-jre
+FROM openjdk:8u151-jre
 
 ENV TZ Europe/Berlin
 
