@@ -13,7 +13,7 @@ COPY . /proj
 RUN ./gradlew copyArtifact
 
 
-FROM openjdk:151-jre
+FROM openjdk:8u151-jre
 
 ENV TZ Europe/Berlin
 
