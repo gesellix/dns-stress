@@ -1,4 +1,4 @@
-FROM openjdk:8u92-jre-alpine
+FROM openjdk:8u92-jre
 
 ENV TZ Europe/Berlin
 

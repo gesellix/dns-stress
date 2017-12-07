@@ -1,4 +1,4 @@
-FROM openjdk:8u92-jdk-alpine as builder
+FROM openjdk:8u92-jdk as builder
 
 WORKDIR /proj
 
@@ -13,7 +13,7 @@ COPY . /proj
 RUN ./gradlew copyArtifact
 
 
-FROM openjdk:8u92-jre-alpine
+FROM openjdk:8u92-jre
 
 ENV TZ Europe/Berlin
 
