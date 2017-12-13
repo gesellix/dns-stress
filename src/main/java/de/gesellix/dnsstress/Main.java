@@ -12,10 +12,10 @@ public class Main {
 
   public static void main(String[] args) {
     long intervalSeconds = 1;
-    String hostname = "elasticsearch-http.vorgangsmanagement.europace.localll";
+    String hostname = "foo.pku.europace.local";
 
     if (args.length == 0) {
-      System.out.println("Usage: ./bin/dns-stress <interval seconds> <hostname String>");
+      System.out.println("Usage: ./bin/dns-stress <interval seconds> <hostname string>");
       System.out.printf("Using defaults (%s, %s)\n", intervalSeconds, hostname);
     }
     else {
@@ -25,7 +25,7 @@ public class Main {
     long interval = SECONDS.toMillis(intervalSeconds);
 
     Security.setProperty("networkaddress.cache.negative.ttl", "0");
-//    Security.setProperty("networkaddress.cache.ttl", "60");
+    Security.setProperty("networkaddress.cache.ttl", "10");
 
     System.out.printf("Implementation negative DNS TTL for JVM is %d seconds\n", sun.net.InetAddressCachePolicy.getNegative());
     System.out.printf("Implementation DNS TTL for JVM is %d seconds\n", sun.net.InetAddressCachePolicy.get());
