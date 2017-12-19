@@ -1,36 +1,35 @@
 package de.gesellix.dnsstress;
 
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.TimerTask;
 
 class LookupTask extends TimerTask {
 
-  private final MediaType TEXT = MediaType.parse("application/x-www-form-urlencoded");
-
-  private final OkHttpClient client = new OkHttpClient();
-
   private String ownHost;
   private String hostname;
-  private String slackWebhookUrl;
+  private MessagePublisher publisher;
 
   LookupTask(String ownHost, String hostname, String slackWebhookUrl) {
     this.ownHost = ownHost == null || ownHost.isEmpty() ? "UNKNOWN" : ownHost;
     this.hostname = hostname;
-    this.slackWebhookUrl = slackWebhookUrl;
+    this.publisher = new SlackMessagePublisher(slackWebhookUrl);
+  }
+
+  public void setPublisher(MessagePublisher publisher) {
+    this.publisher = publisher;
   }
 
   @Override
   public void run() {
+    Stopwatch watch = new Stopwatch();
     String timestamp = ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss"));
     try {
       System.out.printf("Trying to lookup '%s'...\n", hostname);
@@ -38,35 +37,41 @@ class LookupTask extends TimerTask {
       System.out.printf("Resolved to '%s'\n", address.toString());
     }
     catch (UnknownHostException e) {
-      System.err.printf("%s Lookup failed\n", timestamp);
       e.printStackTrace();
+      System.err.printf("%s Lookup failed\n", timestamp);
 
-      if (slackWebhookUrl != null && !slackWebhookUrl.isEmpty()) {
-        try {
-          String res = post(slackWebhookUrl,
-                            "payload={" +
-                            "\"channel\": \"#pku_unknownhosts\"," +
-                            "\"username\": \"webhookbot\"," +
-                            "\"text\": \"@channel Lookup failed for " + hostname + " from " + ownHost + ".\"," +
-                            "\"parse\": \"full\"," +
-                            "\"icon_emoji\": \":ghost:\"}");
-          System.out.println("res:" + res);
-        }
-        catch (IOException ioE) {
-          System.err.println("Failed to send Slack notification.");
-          ioE.printStackTrace();
-        }
-      }
+      publisher.publish("Lookup failed for " + hostname + " from " + ownHost + ".",
+                        "- elapsed seconds: " + watch.elapsedDuration().getSeconds() + "\n" +
+                        "- contents of /etc/hosts:\n" +
+                        "```\n" +
+                        "" + getFileContents("/etc/hosts") + "\n" +
+                        "```\n" +
+                        "- contents of /etc/resolv.conf:\n" +
+                        "```\n" +
+                        "" + getFileContents("/etc/resolv.conf") + "\n" +
+                        "```\n");
     }
   }
 
-  private String post(String url, String payload) throws IOException {
-    RequestBody body = RequestBody.create(TEXT, payload);
-    Request request = new Request.Builder()
-        .url(url)
-        .post(body)
-        .build();
-    Response response = client.newCall(request).execute();
-    return response.body().string();
+  private String getFileContents(String filename) {
+    try {
+      StringBuilder contents = new StringBuilder();
+      Files.lines(Paths.get(filename), StandardCharsets.UTF_8)
+          .map((line) -> line + "\n")
+          .forEach(contents::append);
+      return contents.toString();
+    }
+    catch (IOException ioExc) {
+      ioExc.printStackTrace();
+      return "Couldn't read from " + filename + " (" + ioExc.getMessage() + ")";
+    }
+  }
+
+  static class Stopwatch {
+    private long start = System.currentTimeMillis();
+
+    Duration elapsedDuration() {
+      return Duration.ofMillis(System.currentTimeMillis() - start);
+    }
   }
 }

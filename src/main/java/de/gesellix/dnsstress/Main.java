@@ -1,6 +1,10 @@
 package de.gesellix.dnsstress;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.security.Security;
+import java.util.Properties;
 import java.util.Timer;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -10,9 +14,9 @@ public class Main {
   private static String slackWebhookUrl = System.getenv("SLACK_WEBHOOK_URL");
   private static String ownHost = System.getenv("OWN_HOST");
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     long intervalSeconds = 1;
-    String hostname = "foo.pku.europace.local";
+    String hostname = "foo.example.local";
 
     if (args.length == 0) {
       System.out.println("Usage: ./bin/dns-stress <interval seconds> <hostname string>");
@@ -30,7 +34,15 @@ public class Main {
     System.out.printf("Implementation negative DNS TTL for JVM is %d seconds\n", sun.net.InetAddressCachePolicy.getNegative());
     System.out.printf("Implementation DNS TTL for JVM is %d seconds\n", sun.net.InetAddressCachePolicy.get());
 
+    if ((slackWebhookUrl == null || slackWebhookUrl.isEmpty()) && new File("secrets-env.properties").isFile()) {
+      Properties properties = new Properties();
+      properties.load(new FileReader("secrets-env.properties"));
+      slackWebhookUrl = properties.getProperty("SLACK_WEBHOOK_URL");
+    }
+
     Timer timer = new Timer();
-    timer.scheduleAtFixedRate(new LookupTask(ownHost, hostname, slackWebhookUrl), 0, interval);
+    LookupTask lookupTask = new LookupTask(ownHost, hostname, slackWebhookUrl);
+//    lookupTask.setPublisher(new ConsoleMessagePublisher());
+    timer.scheduleAtFixedRate(lookupTask, 0, interval);
   }
 }
