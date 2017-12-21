@@ -37,7 +37,7 @@ public class SlackMessagePublisher implements MessagePublisher {
             .put("channel", "#pku_unknownhosts")
             .put("username", "webhookbot")
             .put("icon_emoji", ":ghost:")
-            .put("text", "@channel " + message + ".")
+            .put("text", "@channel " + message)
             .put("link_names", 1);
         String res = post(slackWebhookUrl, "payload=" + payload.toString());
         System.out.println("res:" + res);
